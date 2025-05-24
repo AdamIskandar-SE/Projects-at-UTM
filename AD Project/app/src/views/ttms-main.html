@@ -1,0 +1,63 @@
+<html>
+
+<head>
+    <title>TTMS-Main</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+    <style>
+       .link {cursor: pointer;}
+    </style>
+</head>
+
+<body>
+    <table border="1" width="100%">
+        <tr class="head">
+            <th colspan="2"><h2>FC Timetable</h2></th>
+        </tr>
+        <tr>
+            <td width="200">
+                <ul>
+                    <li id="profile" class="link">Profile</li>
+                    <li id="timetable" class="link">Timetable</li>
+                    <li id="courses" class="link">Courses</li>
+                    <li id="logout" class="link">Logout</li>
+                </ul>
+            </td>
+            <td id="mainContent">
+                Main Content here.
+            </td>
+        </tr>
+        <tr class="foot" style="text-align: center;">
+            <td colspan="2">Footer</td>
+        </tr>
+    </table>
+</body>
+
+</html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="ttms.js"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+    var timeNow = new Date();
+    console.log(timeNow);
+
+    $("#mainContent").load("ttms-profile.html");
+
+    $("#profile").click(function() { 
+        $("#mainContent").load("ttms-profile.html");
+    });
+
+    $("#timetable").click(function() { 
+        $("#mainContent").load("ttms-timetable.html");
+    });
+
+    $("#courses").click(function() { 
+        $("#mainContent").load("ttms-courses.html");
+    });
+
+    $("#logout").click(function() { 
+        localStorage.removeItem("web.fc.utm.my_usersession");
+        window.location.replace("ttms-login.html");
+    });
+
+</script>

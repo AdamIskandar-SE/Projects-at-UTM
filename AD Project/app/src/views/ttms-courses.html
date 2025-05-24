@@ -1,0 +1,251 @@
+<html>
+<head>
+    <title>My Courses</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+    <style>
+        .course-card {
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        .course-card:hover {
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+        }
+        .semester-section {
+            margin-bottom: 20px;
+        }
+        .semester-header {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .course-list {
+            padding: 0 16px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="courseApp" class="w3-container">
+        <div class="w3-bar w3-blue">
+            <button class="w3-bar-item w3-button" 
+                    :class="{'w3-light-blue': activeTab === 'semesters'}"
+                    @click="activeTab = 'semesters'">By Semester</button>
+            <button class="w3-bar-item w3-button" 
+                    :class="{'w3-light-blue': activeTab === 'courses'}"
+                    @click="activeTab = 'courses'">All Courses</button>
+        </div>
+        
+        <!-- Semesters View -->
+        <div :class="['tab-content', {'tab-active': activeTab === 'semesters'}]">
+            <div class="w3-panel w3-pale-blue w3-center" v-if="loading">
+                <p>Loading your course data...</p>
+                <div class="w3-center w3-padding">
+                    <div class="w3-border" style="width: 100%">
+                        <div class="w3-blue" style="height:24px;width:100%" id="progressBar"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div v-if="!loading && sessemCourses.length === 0" class="w3-panel w3-pale-red">
+                <p>No courses found. Please check your enrollment status.</p>
+            </div>
+            
+            <div v-for="(item, idx) in sessemCourses" :key="idx" class="semester-section">
+                <div class="w3-bar w3-blue-gray semester-header w3-round-large" @click="toggleSemester(idx)">
+                    <div class="w3-bar-item">{{ item.sessem }} ({{ item.total }} courses)</div>
+                    <div class="w3-bar-item w3-right">
+                        <i class="arrow" :class="openSemesters[idx] ? 'up' : 'down'">
+                            {{ openSemesters[idx] ? '▲' : '▼' }}
+                        </i>
+                    </div>
+                </div>
+                
+                <div v-if="openSemesters[idx]" class="course-list">
+                    <div v-for="(course, courseIdx) in getCoursesForSemester(item.sessem)" 
+                         :key="courseIdx" 
+                         class="w3-card w3-round-large course-card w3-padding-16 w3-margin-top">
+                        <div class="w3-container">
+                            <h4>{{ course.kod_subjek }} - {{ course.nama_subjek }}</h4>
+                            <p>Section: {{ course.seksyen || 'N/A' }} | Credit Hours: {{ course.jam_kredit || 'N/A' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- All Courses View -->
+        <div :class="['tab-content', {'tab-active': activeTab === 'courses'}]">
+            <div class="w3-container" v-if="!loading">
+                <input class="w3-input w3-border w3-margin-top" type="text" 
+                       placeholder="Search courses..." v-model="searchQuery">
+                
+                <table class="w3-table-all w3-margin-top">
+                    <thead>
+                        <tr class="w3-blue">
+                            <th>Code</th>
+                            <th>Course Name</th>
+                            <th>Session-Semester</th>
+                            <th>Credit Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(course, idx) in filteredCourses" :key="idx">
+                            <td>{{ course.kod_subjek }}</td>
+                            <td>{{ course.nama_subjek }}</td>
+                            <td>{{ course.sesi }}-{{ course.semester }}</td>
+                            <td>{{ course.jam_kredit || 'N/A' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="ttms.js"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+    const vueCourse = Vue.createApp({
+        data() {
+            return { 
+                curruser: getLocalStorageItem("web.fc.utm.my_userSession", {}),
+                usercourses: getLocalStorageItem("web.fc.utm.my_userCourses", []),
+                sessemCourses: [],
+                openSemesters: {},
+                activeTab: 'semesters',
+                searchQuery: '',
+                loading: true
+            };
+        },
+
+        computed: {
+            filteredCourses() {
+                if (!this.searchQuery) return this.usercourses;
+                
+                const query = this.searchQuery.toLowerCase();
+                return this.usercourses.filter(course => 
+                    (course.kod_subjek && course.kod_subjek.toLowerCase().includes(query)) ||
+                    (course.nama_subjek && course.nama_subjek.toLowerCase().includes(query))
+                );
+            }
+        },
+
+        methods: {
+            fetchUserCourses() {
+                this.loading = true;
+                
+                let endpoint = '';
+                let params = {};
+                
+                if (this.curruser.description === "Pelajar FSKSM") {
+                    endpoint = "pelajar_subjek";
+                    params.no_matrik = this.curruser.login_name;
+                } else if (this.curruser.description === "Pensyarah") {
+                    endpoint = "pensyarah_subjek";
+                    params.no_pekerja = this.curruser.no_pekerja;
+                } else {
+                    console.error("Unknown user type:", this.curruser.description);
+                    this.loading = false;
+                    return;
+                }
+                
+                fetchFromApi(endpoint, params)
+                    .then(jsonInst => {
+                        this.usercourses = jsonInst;
+                        localStorage.setItem("web.fc.utm.my_userCourses", JSON.stringify(jsonInst));
+                        this.reconstructUserCourses();
+                        this.loading = false;
+                    })
+                    .catch(err => {
+                        console.error("Failed to fetch user courses:", err);
+                        this.loading = false;
+                    });
+            },
+
+            reconstructUserCourses() {
+                // Group courses by semester
+                const semesterGroups = {};
+                
+                // Process each course
+                this.usercourses.forEach(course => {
+                    const sessem = course.sesi + "-" + course.semester;
+                    
+                    if (!semesterGroups[sessem]) {
+                        semesterGroups[sessem] = { sessem, total: 0, courses: [] };
+                    }
+                    
+                    semesterGroups[sessem].total++;
+                    semesterGroups[sessem].courses.push(course);
+                });
+                
+                // Convert to array and sort by session-semester (newest first)
+                this.sessemCourses = Object.values(semesterGroups).sort((a, b) => {
+                    // Sort by session first (descending)
+                    const sessA = a.sessem.split('-')[0];
+                    const sessB = b.sessem.split('-')[0];
+                    
+                    if (sessA !== sessB) {
+                        return sessB.localeCompare(sessA);
+                    }
+                    
+                    // Then by semester (descending)
+                    const semA = parseInt(a.sessem.split('-')[1]);
+                    const semB = parseInt(b.sessem.split('-')[1]);
+                    return semB - semA;
+                });
+                
+                // Initialize the first semester as open
+                if (this.sessemCourses.length > 0) {
+                    this.$set(this.openSemesters, 0, true);
+                }
+            },
+            
+            getCoursesForSemester(sessem) {
+                return this.usercourses.filter(course => {
+                    const courseSessem = course.sesi + "-" + course.semester;
+                    return courseSessem === sessem;
+                });
+            },
+            
+            toggleSemester(idx) {
+                this.$set(this.openSemesters, idx, !this.openSemesters[idx]);
+            }
+        },
+
+        mounted() {
+            // Check authentication
+            if (!checkAuthentication()) return;
+            
+            // Set the first semester as open by default
+            this.$set = (obj, key, value) => {
+                // Vue 3 reactivity workaround
+                if (Array.isArray(obj)) {
+                    obj.splice(key, 1, value);
+                } else {
+                    obj[key] = value;
+                }
+            };
+            
+            // If no courses data, fetch it
+            if (!this.usercourses.length) {
+                this.fetchUserCourses();
+            } else {
+                this.reconstructUserCourses();
+                this.loading = false;
+                // Open the first semester by default
+                if (this.sessemCourses.length > 0) {
+                    this.$set(this.openSemesters, 0, true);
+                }
+            }
+        },
+    });
+
+    vueCourse.mount("#courseApp");
+</script>

@@ -1,0 +1,214 @@
+<html>
+<head>
+    <title>TTMS-Main</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3pro.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-teal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .link {cursor: pointer;}
+        .app-title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .user-info {
+            padding: 15px;
+            background-color: rgba(0,0,0,0.1);
+        }
+        .menu-icon {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        .active-menu {
+            background-color: rgba(0,0,0,0.2);
+        }
+        .copyright {
+            font-size: 0.8em;
+            text-align: center;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body style="max-width:800px; margin: auto;">
+    <nav class="w3-sidebar w3-bar-block w3-card" id="mySidebar">
+        <div class="w3-container w3-theme-d2">
+            <span onclick="closeSidebar()" class="w3-button w3-display-topright w3-large">X</span>
+            <br>
+            <div class="user-info" id="userInfo">
+                <div v-if="user">
+                    <div class="w3-container w3-center">
+                        <div class="w3-circle w3-theme-l3" style="width:80px;height:80px;line-height:80px;font-size:40px;margin:auto;">
+                            {{ getUserInitials() }}
+                        </div>
+                        <h4>{{ user.full_name }}</h4>
+                        <p class="w3-small">{{ user.description }}</p>
+                        <p class="w3-small w3-text-light-grey">{{ user.login_name }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a class="w3-bar-item w3-button link" href="#" id="profile">
+            <span class="menu-icon"><i class="fas fa-user"></i></span> Profile
+        </a>
+        <a class="w3-bar-item w3-button link" href="#" id="timetable">
+            <span class="menu-icon"><i class="fas fa-calendar-alt"></i></span> Timetable
+        </a>
+        <a class="w3-bar-item w3-button link" href="#" id="courses">
+            <span class="menu-icon"><i class="fas fa-book"></i></span> Courses
+        </a>
+        <a class="w3-bar-item w3-button link" href="#" id="settings">
+            <span class="menu-icon"><i class="fas fa-cog"></i></span> Settings
+        </a>
+        <div class="w3-bar-item w3-theme-l4" style="position:absolute; bottom:0; width:100%;">
+            <a class="w3-bar-item w3-button link w3-text-red" href="#" id="logout">
+                <span class="menu-icon"><i class="fas fa-sign-out-alt"></i></span> Logout
+            </a>
+        </div>
+    </nav>
+
+    <header class="w3-bar w3-card w3-theme">
+        <button class="w3-bar-item w3-button w3-xxlarge w3-hover-theme" onclick="openSidebar()">&#9776;</button>
+        <span class="w3-bar-item app-title">FC Timetable</span>
+        <span class="w3-bar-item w3-right" id="currentTime"></span>
+    </header>
+    
+    <div class="w3-container" id="mainContent">
+        <div class="loader" id="pageLoader"></div>
+    </div>
+
+    <footer class="w3-container w3-theme w3-padding">
+        <p class="copyright">&copy; 2025, Faculty of Computing, UTM</p>
+    </footer>
+</body>
+
+</html>
+<script src="ttms.js"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+    // Setup sidebar user info using Vue
+    const vueUserInfo = Vue.createApp({
+        data() {
+            return {
+                user: getLocalStorageItem("web.fc.utm.my_userSession", {})
+            };
+        },
+        methods: {
+            getUserInitials() {
+                if (!this.user || !this.user.full_name) return "?";
+                
+                return this.user.full_name
+                    .split(' ')
+                    .map(word => word.charAt(0))
+                    .slice(0, 2)
+                    .join('')
+                    .toUpperCase();
+            }
+        }
+    });
+    vueUserInfo.mount("#userInfo");
+
+    // Current page tracking
+    let currentPage = 'profile';
+    
+    // Show current time
+    function updateTime() {
+        const now = new Date();
+        document.getElementById('currentTime').textContent = 
+            now.toLocaleTimeString('en-MY', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // Load page function with loading indicator
+    function loadPage(pageName) {
+        currentPage = pageName;
+        
+        // Update active menu state
+        $('.link').removeClass('active-menu');
+        $(`#${pageName}`).addClass('active-menu');
+        
+        // Show loader
+        $('#mainContent').html('<div class="loader" id="pageLoader"></div>');
+        
+        // Load content
+        setTimeout(() => {
+            $("#mainContent").load(`ttms-${pageName}.html`, function(response, status, xhr) {
+                if (status === "error") {
+                    $("#mainContent").html(`
+                        <div class="w3-panel w3-pale-red w3-leftbar w3-border-red">
+                            <p>Sorry! The requested page could not be loaded.</p>
+                            <p>Error: ${xhr.status} - ${xhr.statusText}</p>
+                        </div>
+                    `);
+                }
+            });
+        }, 500);
+    }
+
+    // Initial page load
+    loadPage('profile');
+
+    // Menu click handlers
+    $("#profile").click(function() {
+        loadPage('profile');
+        closeSidebar();
+    });
+
+    $("#timetable").click(function() {
+        loadPage('timetable');
+        closeSidebar();
+    });
+
+    $("#courses").click(function() {
+        loadPage('courses');
+        closeSidebar();
+    });
+    
+    $("#settings").click(function() {
+        // Show a simple alert for now as settings page isn't implemented
+        alert("Settings page is under development.");
+        closeSidebar();
+    });
+
+    $("#logout").click(function() {
+        if (confirm("Are you sure you want to logout?")) {
+            localStorage.removeItem("web.fc.utm.my_userSession");
+            localStorage.removeItem("web.fc.utm.my_userCourses");
+            localStorage.removeItem("web.fc.utm.my_sessemList");
+            localStorage.removeItem("web.fc.utm.my_sessemCurr");
+            closeSidebar();
+            window.location.replace("ttms-login.html");
+        }
+    });
+
+    // Sidebar toggle functions
+    function openSidebar() {
+        document.getElementById("mySidebar").style.display = "block";
+    }
+
+    function closeSidebar() {
+        document.getElementById("mySidebar").style.display = "none";
+    }
+    
+    // Close sidebar initially
+    closeSidebar();
+</script>

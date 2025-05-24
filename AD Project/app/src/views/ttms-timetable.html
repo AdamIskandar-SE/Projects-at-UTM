@@ -1,0 +1,302 @@
+<html>
+<head>
+    <title>My Timetable</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+    <style>
+        .timetable-container {
+            overflow-x: auto;
+        }
+        .timetable {
+            min-width: 700px;
+            border-collapse: collapse;
+        }
+        .time-cell {
+            width: 80px;
+            text-align: center;
+            font-weight: bold;
+            background-color: #f1f1f1;
+        }
+        .day-header {
+            background-color: #2196F3;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+        .class-slot {
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            padding: 5px;
+            margin: 2px;
+            font-size: 0.85em;
+        }
+        .time-selector {
+            margin-bottom: 20px;
+        }
+        .time-range {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .no-classes {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-style: italic;
+        }
+        /* Different colors for different course types */
+        .lecture {
+            background-color: #4CAF50;
+        }
+        .lab {
+            background-color: #2196F3;
+        }
+        .tutorial {
+            background-color: #ff9800;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="timetableApp" class="w3-container">
+        <h2>My Timetable</h2>
+        
+        <div class="w3-panel w3-pale-blue w3-leftbar w3-border-blue">
+            <p>Session-Semester: {{ currentSemester.sesi }}-{{ currentSemester.semester }}</p>
+        </div>
+        
+        <div class="w3-panel w3-pale-blue w3-center" v-if="loading">
+            <p>Loading your timetable...</p>
+            <div class="w3-center w3-padding">
+                <div class="w3-border" style="width: 100%">
+                    <div class="w3-blue" style="height:24px;width:100%" id="progressBar"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div v-if="!loading && timetableData.length === 0" class="w3-panel w3-pale-red">
+            <p>No classes found for this semester. Please check your course enrollment.</p>
+        </div>
+        
+        <div v-if="!loading && timetableData.length > 0">
+            <!-- Day filter -->
+            <div class="w3-bar w3-black">
+                <button class="w3-bar-item w3-button" 
+                        :class="{'w3-blue': selectedDay === 'all'}" 
+                        @click="selectedDay = 'all'">All Days</button>
+                <button v-for="day in days" :key="day" 
+                        class="w3-bar-item w3-button" 
+                        :class="{'w3-blue': selectedDay === day}" 
+                        @click="selectedDay = day">{{ day }}</button>
+            </div>
+            
+            <div class="time-selector w3-margin-top">
+                <span class="time-range">Time Range:</span>
+                <select class="w3-select w3-border" style="width:200px" v-model="timeRange">
+                    <option value="all">All Day (8:00 - 18:00)</option>
+                    <option value="morning">Morning (8:00 - 12:00)</option>
+                    <option value="afternoon">Afternoon (12:00 - 18:00)</option>
+                </select>
+            </div>
+            
+            <!-- Legend -->
+            <div class="w3-bar w3-margin-top">
+                <span class="w3-bar-item">Legend:</span>
+                <span class="w3-bar-item class-slot lecture">Lecture</span>
+                <span class="w3-bar-item class-slot tutorial">Tutorial</span>
+                <span class="w3-bar-item class-slot lab">Lab</span>
+            </div>
+            
+            <!-- Timetable -->
+            <div class="timetable-container w3-margin-top">
+                <table class="w3-table w3-bordered timetable">
+                    <thead>
+                        <tr>
+                            <th class="time-cell">Time</th>
+                            <th v-for="day in filteredDays" :key="day" class="day-header">{{ day }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="time in filteredTimeSlots" :key="time">
+                            <td class="time-cell">{{ time }}</td>
+                            <td v-for="day in filteredDays" :key="day">
+                                <div v-for="(slot, idx) in getClassesForTimeAndDay(time, day)" 
+                                     :key="idx" 
+                                     :class="['class-slot', getClassType(slot)]">
+                                    <strong>{{ slot.kod_subjek }}</strong><br>
+                                    {{ slot.nama_subjek }}<br>
+                                    Room: {{ slot.no_bilik || 'TBA' }}
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="ttms.js"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+    const vueTimetable = Vue.createApp({
+        data() {
+            return {
+                curruser: getLocalStorageItem("web.fc.utm.my_userSession", {}),
+                currentSemester: getLocalStorageItem("web.fc.utm.my_sessemCurr", {}),
+                timetableData: [],
+                loading: true,
+                selectedDay: 'all',
+                timeRange: 'all',
+                days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+                timeSlots: [
+                    '08:00', '09:00', '10:00', '11:00', '12:00',
+                    '13:00', '14:00', '15:00', '16:00', '17:00'
+                ]
+            };
+        },
+        
+        computed: {
+            filteredDays() {
+                if (this.selectedDay === 'all') {
+                    return this.days;
+                }
+                return [this.selectedDay];
+            },
+            
+            filteredTimeSlots() {
+                switch(this.timeRange) {
+                    case 'morning':
+                        return this.timeSlots.slice(0, 5); // 8:00 - 12:00
+                    case 'afternoon':
+                        return this.timeSlots.slice(5); // 13:00 - 17:00
+                    default:
+                        return this.timeSlots;
+                }
+            }
+        },
+
+        methods: {
+            fetchTimetable() {
+                this.loading = true;
+                
+                let endpoint = '';
+                let params = {};
+                
+                // Add current semester parameters
+                if (this.currentSemester) {
+                    params.sesi = this.currentSemester.sesi;
+                    params.semester = this.currentSemester.semester;
+                }
+                
+                if (this.curruser.description === "Pelajar FSKSM") {
+                    endpoint = "pelajar_jadual";
+                    params.no_matrik = this.curruser.login_name;
+                } else if (this.curruser.description === "Pensyarah") {
+                    endpoint = "pensyarah_jadual";
+                    params.no_pekerja = this.curruser.no_pekerja;
+                } else {
+                    console.error("Unknown user type:", this.curruser.description);
+                    this.loading = false;
+                    return;
+                }
+                
+                // Since we don't have actual API access, we'll create mock data
+                // In a real implementation, this would be:
+                // fetchFromApi(endpoint, params).then(...)
+                
+                setTimeout(() => {
+                    // Mock data for demonstration
+                    this.timetableData = this.generateMockTimetable();
+                    this.loading = false;
+                }, 1000);
+            },
+            
+            generateMockTimetable() {
+                // This generates sample timetable data
+                const mockCourses = [
+                    {
+                        kod_subjek: 'SECJ3303',
+                        nama_subjek: 'Web Programming',
+                        hari: 'Monday',
+                        masa_mula: '09:00',
+                        masa_tamat: '11:00',
+                        no_bilik: 'P19-3001',
+                        jenis: 'lecture'
+                    },
+                    {
+                        kod_subjek: 'SECJ3303',
+                        nama_subjek: 'Web Programming',
+                        hari: 'Wednesday',
+                        masa_mula: '14:00',
+                        masa_tamat: '16:00',
+                        no_bilik: 'P19-3001',
+                        jenis: 'tutorial'
+                    },
+                    {
+                        kod_subjek: 'SECR3104',
+                        nama_subjek: 'Database Systems',
+                        hari: 'Tuesday',
+                        masa_mula: '10:00',
+                        masa_tamat: '12:00',
+                        no_bilik: 'P19-4001',
+                        jenis: 'lecture'
+                    },
+                    {
+                        kod_subjek: 'SECR3104',
+                        nama_subjek: 'Database Systems',
+                        hari: 'Thursday',
+                        masa_mula: '15:00',
+                        masa_tamat: '17:00',
+                        no_bilik: 'P19-Lab2',
+                        jenis: 'lab'
+                    },
+                    {
+                        kod_subjek: 'SECI4213',
+                        nama_subjek: 'Systems Security',
+                        hari: 'Friday',
+                        masa_mula: '08:00',
+                        masa_tamat: '10:00',
+                        no_bilik: 'P19-2001',
+                        jenis: 'lecture'
+                    }
+                ];
+                
+                return mockCourses;
+            },
+            
+            getClassesForTimeAndDay(time, day) {
+                const hour = parseInt(time.split(':')[0]);
+                
+                return this.timetableData.filter(slot => {
+                    const startHour = parseInt(slot.masa_mula.split(':')[0]);
+                    const endHour = parseInt(slot.masa_tamat.split(':')[0]);
+                    
+                    return slot.hari === day && 
+                           hour >= startHour && 
+                           hour < endHour;
+                });
+            },
+            
+            getClassType(slot) {
+                // Return the appropriate class based on the course type
+                switch(slot.jenis?.toLowerCase()) {
+                    case 'lab': return 'lab';
+                    case 'tutorial': return 'tutorial';
+                    default: return 'lecture';
+                }
+            }
+        },
+
+        mounted() {
+            // Check authentication
+            if (!checkAuthentication()) return;
+            
+            // Fetch timetable data
+            this.fetchTimetable();
+        }
+    });
+
+    vueTimetable.mount("#timetableApp");
+</script>
