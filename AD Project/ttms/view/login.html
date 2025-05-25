@@ -1,0 +1,36 @@
+<div class="w3-display-container w3-theme-gradient" style="height:100vh;">
+    <div class="w3-display-middle w3-card-4 w3-white w3-round-large" style="width:400px;">
+        <div class="w3-container w3-center w3-theme w3-padding">
+            <h2><i class="fas fa-graduation-cap"></i> FC Timetable</h2>
+            <p>Faculty of Computing - UTM</p>
+        </div>
+        
+        <div class="w3-container w3-padding-32">
+            <div class="w3-margin-bottom">
+                <label class="w3-text-theme"><b>Username</b></label>
+                <input class="w3-input w3-border w3-round" type="text" id="username" placeholder="Enter your username">
+            </div>
+            
+            <div class="w3-margin-bottom">
+                <label class="w3-text-theme"><b>Password</b></label>
+                <input class="w3-input w3-border w3-round" type="password" id="password" placeholder="Enter your password">
+            </div>
+            
+            <div id="errorMsg" class="w3-panel w3-red w3-round w3-margin-bottom" style="display:none;">
+                <p></p>
+            </div>
+            
+            <div id="loading" class="w3-panel w3-blue w3-round w3-margin-bottom" style="display:none;">
+                <p><i class="fas fa-spinner fa-spin"></i> Logging in...</p>
+            </div>
+            
+            <button id="loginBtn" class="w3-button w3-theme w3-round w3-block w3-padding">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </div>
+        
+        <div class="w3-container w3-center w3-padding w3-light-grey">
+            <p class="w3-small">For students and lecturers of Faculty of Computing</p>
+        </div>
+    </div>
+</div>
