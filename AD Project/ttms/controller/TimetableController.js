@@ -28,8 +28,8 @@ class TimetableController {
         const days = Timetable.filterDays(selectedDay);
         const timeSlots = Timetable.timeSlots;
         
-        let html = '<div class="w3-responsive"><table class="w3-table w3-bordered w3-striped">';
-        html += '<tr class="w3-theme"><th>Time</th>';
+        let html = '<div class="w3-responsive"><table class="w3-table">';
+        html += '<tr><th>Time</th>';
         
         days.forEach(day => {
             html += `<th>${day}</th>`;
@@ -37,7 +37,7 @@ class TimetableController {
         html += '</tr>';
         
         timeSlots.forEach(time => {
-            html += `<tr><td><strong>${time}</strong></td>`;
+            html += `<tr><td>${time}</td>`;
             
             days.forEach(day => {
                 const classes = Timetable.getClassesForTimeAndDay(this.timetableData, time, day);
@@ -45,12 +45,13 @@ class TimetableController {
                 
                 classes.forEach(slot => {
                     const classType = Timetable.getClassType(slot);
-                    const colorClass = this.getClassColor(classType);
-                    html += `<div class="w3-panel ${colorClass} w3-round w3-small">
-                        <strong>${slot.kod_subjek}</strong><br>
-                        ${slot.nama_subjek}<br>
-                        ${slot.no_bilik}<br>
-                        <em>${slot.jenis}</em>
+                    html += `<div class="class-card ${classType}">
+                        <div class="class-code">${slot.kod_subjek}</div>
+                        <div class="class-name">${slot.nama_subjek}</div>
+                        <div class="class-details">
+                            <span class="class-room">📍 ${slot.no_bilik}</span>
+                            <span class="class-type">${slot.jenis}</span>
+                        </div>
                     </div>`;
                 });
                 
