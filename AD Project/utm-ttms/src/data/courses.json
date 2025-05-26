@@ -1,0 +1,12 @@
+[
+    {
+        "id": "SECD2523",
+        "course_name": "DATABASE",
+        "instructor_name": "Dr. Izzah"
+    },
+    {
+        "id": "SECR1213",
+        "course_name": "NETWORK COMMUNICATION",
+        "instructor_name": "Dr. Faiz"
+    }
+]

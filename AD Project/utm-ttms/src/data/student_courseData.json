@@ -1,0 +1,12 @@
+{
+"name": "AISYAH MAWADDAH BINTI MOHD RODUAN",
+"studentCourses": [
+    { "code": "SECR3203 - 07", "name": "Theory Of Computer Science", "credit": 3 },
+    { "code": "SECR2242 - 02", "name": "Computer Network", "credit": 3 },
+    { "code": "SECJ2941 - 02", "name": "Computer Network Lab", "credit": 1 },
+    { "code": "SECR3104 - 01", "name": "Application Development", "credit": 4 },
+    { "code": "SECR3223 - 03", "name": "High Performance & Parallel Computing", "credit": 3 },
+    { "code": "SECR3253 - 01", "name": "Network Programming", "credit": 2 },
+    { "code": "UHBL2122 - 53", "name": "Professional Communication Skills 1", "credit": 2 }
+]
+}
