@@ -3,7 +3,7 @@
     <div class="nav-container">
       <div class="nav-brand">
         <router-link to="/" class="brand-link">
-          <img src="/Logo-UTM-white.png" alt="UTM" class="brand-logo" />
+          <img src="./Logo-UTM-white.png" alt="UTM" class="brand-logo" />
           <span class="brand-text">UTM Timetable</span>
         </router-link>
       </div>
