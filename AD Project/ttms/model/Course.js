@@ -1,78 +1,109 @@
-// Course Model
+// Course.js - Course Model
 class Course {
-    static getUserCourses() {
-        try {
-            const coursesData = localStorage.getItem('ttms_user_courses');
-            return coursesData ? JSON.parse(coursesData) : [];
-        } catch (error) {
-            console.error('Error getting user courses:', error);
-            return [];
-        }
+    constructor(data = {}) {
+        this.id = data.id || null;
+        this.kod_subjek = data.kod_subjek || '';
+        this.nama_subjek = data.nama_subjek || '';
+        this.kredit_jam = data.kredit_jam || '';
+        this.pensyarah = data.pensyarah || '';
+        this.sesi = data.sesi || '';
+        this.semester = data.semester || '';
+        this.description = data.description || '';
+        this.prerequisites = data.prerequisites || [];
+        this.created_at = data.created_at || new Date();
+        this.updated_at = data.updated_at || new Date();
     }
 
-    static setUserCourses(coursesData) {
-        try {
-            localStorage.setItem('ttms_user_courses', JSON.stringify(coursesData));
-        } catch (error) {
-            console.error('Error saving user courses:', error);
+    // Validation methods
+    validate() {
+        const errors = [];
+
+        if (!this.kod_subjek || this.kod_subjek.trim().length === 0) {
+            errors.push('Course code is required');
         }
+
+        if (!this.nama_subjek || this.nama_subjek.trim().length === 0) {
+            errors.push('Course name is required');
+        }
+
+        if (!this.kredit_jam || isNaN(parseInt(this.kredit_jam))) {
+            errors.push('Valid credit hours required');
+        }
+
+        if (!this.sesi || this.sesi.trim().length === 0) {
+            errors.push('Session is required');
+        }
+
+        if (!this.semester || this.semester.trim().length === 0) {
+            errors.push('Semester is required');
+        }
+
+        return {
+            isValid: errors.length === 0,
+            errors: errors
+        };
     }
 
-    static async fetchUserCourses() {
-        const user = User.getCurrentUser();
-        const semester = User.getCurrentSemester();
-        
-        if (!user || !semester) {
-            throw new Error('User or semester data not available');
-        }
+    // Utility methods
+    getFullCode() {
+        return this.kod_subjek.toUpperCase();
+    }
 
-        try {
-            let courses;
-            if (user.description === 'Pelajar FSKSM') {
-                courses = await Api.getStudentCourses(user.login_name, semester.sesi, semester.semester);
-            } else if (user.description === 'Pensyarah') {
-                courses = await Api.getLecturerCourses(user.no_pekerja, semester.sesi, semester.semester);
-            } else {
-                throw new Error('Unknown user type');
+    getDisplayName() {
+        return `${this.getFullCode()} - ${this.nama_subjek}`;
+    }
+
+    getCreditHours() {
+        return parseInt(this.kredit_jam) || 0;
+    }
+
+    getSessionSemester() {
+        return `${this.sesi} - Semester ${this.semester}`;
+    }
+
+    hasPrerequisites() {
+        return this.prerequisites && this.prerequisites.length > 0;
+    }
+
+    // Static methods
+    static fromJson(json) {
+        return new Course(json);
+    }
+
+    static fromArray(jsonArray) {
+        return jsonArray.map(item => new Course(item));
+    }
+
+    // Convert to JSON
+    toJson() {
+        return {
+            id: this.id,
+            kod_subjek: this.kod_subjek,
+            nama_subjek: this.nama_subjek,
+            kredit_jam: this.kredit_jam,
+            pensyarah: this.pensyarah,
+            sesi: this.sesi,
+            semester: this.semester,
+            description: this.description,
+            prerequisites: this.prerequisites,
+            created_at: this.created_at,
+            updated_at: this.updated_at
+        };
+    }
+
+    // Update method
+    update(data) {
+        Object.keys(data).forEach(key => {
+            if (this.hasOwnProperty(key)) {
+                this[key] = data[key];
             }
-
-            this.setUserCourses(courses);
-            return courses;
-        } catch (error) {
-            console.error('Error fetching user courses:', error);
-            throw error;
-        }
+        });
+        this.updated_at = new Date();
+        return this;
     }
 
-    static groupCoursesBySemester(courses) {
-        const grouped = {};
-        
-        courses.forEach(course => {
-            const key = `${course.sesi}-${course.semester}`;
-            if (!grouped[key]) {
-                grouped[key] = {
-                    sessem: key,
-                    total: 0,
-                    courses: []
-                };
-            }
-            grouped[key].total++;
-            grouped[key].courses.push(course);
-        });
-
-        return Object.values(grouped).sort((a, b) => {
-            // Sort by session-semester (newest first)
-            return b.sessem.localeCompare(a.sessem);
-        });
-    }
-
-    static searchCourses(courses, query) {
-        if (!query) return courses;
-        
-        const searchTerm = query.toLowerCase();
-        return courses.filter(course => 
-            (course.kod_subjek && course.kod_subjek.toLowerCase().includes(searchTerm)) ||
-            (course.nama_subjek && course.nama_subjek.toLowerCase().includes(searchTerm))
-        );
+    // Clone method
+    clone() {
+        return new Course(this.toJson());
     }
 }

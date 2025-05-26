@@ -1,63 +1,60 @@
-// Profile Controller
+// ProfileController.js
 class ProfileController {
     constructor() {
-        this.loadProfile();
-        this.loadSemesters();
-        this.initializeSemesterChange();
+        this.mockSemesters = [
+            { sesi: '2024/2025', semester: '2' },
+            { sesi: '2024/2025', semester: '1' },
+            { sesi: '2023/2024', semester: '2' }
+        ];
     }
 
-    loadProfile() {
-        const user = User.getCurrentUser();
-        const profileInfo = document.getElementById('profileInfo');
+    async loadSemesters() {
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return this.mockSemesters;
+    }
+
+    updateProfile(userData, updates) {
+        // In a real app, this would make an API call to update user profile
+        return { ...userData, ...updates };
+    }
+
+    getUserInitials(fullName) {
+        if (!fullName) return '?';
+        return fullName.split(' ')
+            .map(word => word.charAt(0))
+            .slice(0, 2)
+            .join('')
+            .toUpperCase();
+    }
+
+    validateProfileData(profileData) {
+        const errors = [];
         
-        if (user && profileInfo) {
-            profileInfo.innerHTML = `
-                <p><strong>Name:</strong> ${user.full_name || 'N/A'}</p>
-                <p><strong>Login ID:</strong> ${user.login_name || 'N/A'}</p>
-                <p><strong>Type:</strong> ${user.description || 'N/A'}</p>
-                ${user.no_pekerja ? `<p><strong>Staff ID:</strong> ${user.no_pekerja}</p>` : ''}
-            `;
+        if (!profileData.full_name || profileData.full_name.trim().length === 0) {
+            errors.push('Full name is required');
         }
-    }
-
-    loadSemesters() {
-        const semesters = User.getSemesterList();
-        const currentSemester = User.getCurrentSemester();
-        const select = document.getElementById('semesterSelect');
         
-        if (select) {
-            select.innerHTML = '';
-            
-            if (semesters.length === 0) {
-                select.innerHTML = '<option>No semesters available</option>';
-                return;
-            }
-            
-            semesters.forEach(semester => {
-                const option = document.createElement('option');
-                option.value = JSON.stringify(semester);
-                option.text = `${semester.sesi} - Semester ${semester.semester}`;
-                
-                if (currentSemester && 
-                    semester.sesi === currentSemester.sesi && 
-                    semester.semester === currentSemester.semester) {
-                    option.selected = true;
-                }
-                
-                select.appendChild(option);
-            });
+        if (!profileData.login_name || profileData.login_name.trim().length === 0) {
+            errors.push('Login name is required');
         }
+        
+        return {
+            isValid: errors.length === 0,
+            errors: errors
+        };
     }
 
-    initializeSemesterChange() {
-        const select = document.getElementById('semesterSelect');
-        if (select) {
-            select.addEventListener('change', (e) => {
-                if (e.target.value) {
-                    const selectedSemester = JSON.parse(e.target.value);
-                    User.setCurrentSemester(selectedSemester);
-                }
-            });
-        }
+    formatUserType(description) {
+        if (!description) return 'N/A';
+        
+        const typeMap = {
+            'Pelajar FSKSM': 'Student',
+            'Pensyarah': 'Lecturer',
+            'Profesor': 'Professor',
+            'Pensyarah Kanan': 'Senior Lecturer'
+        };
+        
+        return typeMap[description] || description;
     }
 }

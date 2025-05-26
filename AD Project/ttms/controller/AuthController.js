@@ -1,84 +1,53 @@
-// Authentication Controller
+// AuthController.js
 class AuthController {
-    constructor() {
-        this.initializeLogin();
+    constructor(app) {
+        this.app = app;
+        this.mockUsers = {
+            'student1': { 
+                password: 'pass123',
+                data: {
+                    full_name: 'Ahmad bin Abdullah',
+                    login_name: 'student1',
+                    description: 'Pelajar FSKSM',
+                    no_matrik: 'A20EC1234'
+                }
+            },
+            'lecturer1': {
+                password: 'pass123',
+                data: {
+                    full_name: 'Dr. Siti Aminah',
+                    login_name: 'lecturer1',
+                    description: 'Pensyarah',
+                    no_pekerja: '12345'
+                }
+            }
+        };
     }
 
-    initializeLogin() {
-        setTimeout(() => {
-            const loginBtn = document.getElementById('loginBtn');
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const errorDiv = document.getElementById('errorMsg');
-            const loadingDiv = document.getElementById('loading');
-
-            if (loginBtn) {
-                loginBtn.addEventListener('click', () => this.handleLogin());
-            }
-
-            if (passwordInput) {
-                passwordInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        this.handleLogin();
-                    }
-                });
-            }
-        }, 100);
-    }
-
-    async handleLogin() {
-        const username = document.getElementById('username')?.value.trim();
-        const password = document.getElementById('password')?.value.trim();
-        const errorDiv = document.getElementById('errorMsg');
-        const loadingDiv = document.getElementById('loading');
-        const loginBtn = document.getElementById('loginBtn');
-
-        // Validation
+    async handleLogin(username, password) {
         if (!username || !password) {
-            this.showError('Please enter both username and password');
-            return;
+            throw new Error('Please fill in all fields');
         }
 
-        // Show loading
-        loginBtn.disabled = true;
-        loadingDiv.style.display = 'block';
-        errorDiv.style.display = 'none';
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
-        try {
-            const userData = await User.authenticate(username, password);
-            
-            // Fetch semester data
-            await this.fetchSemesterData();
-            
-            // Dispatch login success event
-            window.dispatchEvent(new CustomEvent('loginSuccess', { 
-                detail: userData 
-            }));
-
-        } catch (error) {
-            this.showError('Login failed: ' + error.message);
-            loginBtn.disabled = false;
-            loadingDiv.style.display = 'none';
+        const mockUser = this.mockUsers[username];
+        if (mockUser && mockUser.password === password) {
+            return mockUser.data;
+        } else {
+            throw new Error('Invalid username or password');
         }
     }
 
-    async fetchSemesterData() {
-        try {
-            const semesters = await Api.getSemesters();
-            User.setSemesterList(semesters);
-            if (semesters.length > 0) {
-                User.setCurrentSemester(semesters[0]);
-            }
-        } catch (error) {
-            console.warn('Could not fetch semester data:', error);
-        }
+    logout() {
+        // Clear any stored session data
+        // In a real app, you would clear tokens, sessions, etc.
+        return true;
     }
 
-    showError(message) {
-        const errorDiv = document.getElementById('errorMsg');
-        if (errorDiv) {
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-        }
+    validateSession() {
+        // In a real app, validate current session/token
+        return false;
     }
 }

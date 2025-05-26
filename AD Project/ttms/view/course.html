@@ -1,12 +1,75 @@
-<div class="w3-container">
-    <h2>Courses</h2>
-    
-    <div class="w3-bar w3-margin-bottom">
-        <button class="w3-button w3-theme" onclick="loadCourses()">Refresh</button>
-        <input class="w3-input w3-border" type="text" id="courseSearch" placeholder="Search courses..." style="width:300px; display:inline-block; margin-left:10px;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FC Timetable System - Courses</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3pro.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-teal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="w3-sidebar w3-bar-block w3-card" id="sidebar">
+        <div class="w3-container w3-theme-d2">
+            <span class="w3-button w3-display-topright w3-large" onclick="closeSidebar()">×</span>
+            <div class="user-info">
+                <div class="w3-container w3-center">
+                    <div class="w3-circle w3-theme-l3 user-avatar" id="user-avatar"></div>
+                    <h4 id="user-name">User Name</h4>
+                    <p class="w3-small" id="user-description">User Role</p>
+                </div>
+            </div>
+        </div>
+        <a class="w3-bar-item w3-button" href="profile.html">
+            <i class="fas fa-user"></i> Profile
+        </a>
+        <a class="w3-bar-item w3-button" href="timetable.html">
+            <i class="fas fa-calendar-alt"></i> Timetable
+        </a>
+        <a class="w3-bar-item w3-button w3-theme-l4" href="course.html">
+            <i class="fas fa-book"></i> Courses
+        </a>
+        <a class="w3-bar-item w3-button w3-text-red" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </nav>
+
+    <!-- Header -->
+    <header class="w3-bar w3-card w3-theme">
+        <button class="w3-bar-item w3-button w3-xxlarge" onclick="openSidebar()">☰</button>
+        <span class="w3-bar-item app-title">FC Timetable</span>
+        <span class="w3-bar-item w3-right" id="current-time"></span>
+    </header>
+
+    <!-- Main Content -->
+    <div class="w3-container main-content">
+        <h2>Courses</h2>
+        <div class="w3-bar w3-margin-bottom">
+            <button class="w3-button w3-theme" onclick="loadCourses()">Refresh</button>
+            <input class="w3-input w3-border" type="text" id="course-search" 
+                   placeholder="Search courses..." style="width:300px; display:inline-block; margin-left:10px;">
+        </div>
+        
+        <div id="courses-loading" style="display: none;">
+            <p>Loading courses...</p>
+        </div>
+        
+        <div id="no-courses" style="display: none;">
+            <p>No courses found</p>
+        </div>
+        
+        <div id="courses-container">
+            <!-- Course content will be populated here -->
+        </div>
     </div>
-    
-    <div id="courseContent">
-        <p>Loading courses...</p>
-    </div>
-</div>
+
+    <footer class="w3-container w3-theme w3-padding">
+        <p class="w3-center">&copy; 2025, Faculty of Computing, UTM</p>
+    </footer>
+
+    <script src="../assets/js/app.js"></script>
+    <script src="../controller/CourseController.js"></script>
+</body>
+</html>

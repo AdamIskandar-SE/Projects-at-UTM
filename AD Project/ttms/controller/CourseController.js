@@ -1,67 +1,87 @@
-// Course Controller
+// CourseController.js
 class CourseController {
     constructor() {
-        this.allCourses = [];
-        this.loadCourses();
-        this.initializeSearch();
+        this.mockCourses = [
+            {
+                id: 1,
+                kod_subjek: 'SECJ3303',
+                nama_subjek: 'Web Programming',
+                kredit_jam: '3',
+                pensyarah: 'Dr. Ahmad',
+                sesi: '2024/2025',
+                semester: '2'
+            },
+            {
+                id: 2,
+                kod_subjek: 'SECR3104',
+                nama_subjek: 'Database Systems',
+                kredit_jam: '3',
+                pensyarah: 'Dr. Siti',
+                sesi: '2024/2025',
+                semester: '2'
+            },
+            {
+                id: 3,
+                kod_subjek: 'SECI1013',
+                nama_subjek: 'Programming Technique I',
+                kredit_jam: '4',
+                pensyarah: 'Dr. Rahman',
+                sesi: '2024/2025',
+                semester: '1'
+            },
+            {
+                id: 4,
+                kod_subjek: 'SECJ2013',
+                nama_subjek: 'Object-Oriented Programming',
+                kredit_jam: '4',
+                pensyarah: 'Dr. Fatimah',
+                sesi: '2024/2025',
+                semester: '2'
+            }
+        ];
     }
 
-    async loadCourses() {
-        const content = document.getElementById('courseContent');
-        if (content) content.innerHTML = '<p>Loading courses...</p>';
+    async loadCourses(userId, semester = null) {
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        // In a real app, filter by user and semester
+        let courses = this.mockCourses;
         
-        try {
-            this.allCourses = await Course.fetchUserCourses();
-            this.renderCourses(this.allCourses);
-        } catch (error) {
-            if (content) content.innerHTML = '<p class="w3-text-red">Error loading courses</p>';
+        if (semester) {
+            courses = courses.filter(course => 
+                course.sesi === semester.sesi && 
+                course.semester === semester.semester
+            );
         }
+
+        return courses;
     }
 
-    renderCourses(courses) {
-        const content = document.getElementById('courseContent');
-        if (!content) return;
+    searchCourses(courses, searchTerm) {
+        if (!searchTerm) return courses;
         
-        if (!courses || courses.length === 0) {
-            content.innerHTML = '<p>No courses found</p>';
-            return;
-        }
-        
-        const groupedCourses = Course.groupCoursesBySemester(courses);
-        let html = '';
-        
-        groupedCourses.forEach(group => {
-            html += `<div class="w3-card w3-margin">
-                <div class="w3-container w3-theme w3-padding">
-                    <h3>Session ${group.sessem} (${group.total} courses)</h3>
-                </div>
-                <div class="w3-container">`;
-            
-            group.courses.forEach(course => {
-                html += `<div class="w3-panel w3-border-left w3-border-blue">
-                    <h4>${course.kod_subjek} - ${course.nama_subjek}</h4>
-                    <p><strong>Credit Hours:</strong> ${course.kredit_jam || 'N/A'}</p>
-                    ${course.pensyarah ? `<p><strong>Lecturer:</strong> ${course.pensyarah}</p>` : ''}
-                </div>`;
-            });
-            
-            html += '</div></div>';
+        const search = searchTerm.toLowerCase();
+        return courses.filter(course => 
+            course.kod_subjek.toLowerCase().includes(search) ||
+            course.nama_subjek.toLowerCase().includes(search)
+        );
+    }
+
+    groupCoursesBySession(courses) {
+        const grouped = {};
+        courses.forEach(course => {
+            const key = `${course.sesi}-${course.semester}`;
+            if (!grouped[key]) {
+                grouped[key] = {
+                    sessem: key,
+                    total: 0,
+                    courses: []
+                };
+            }
+            grouped[key].total++;
+            grouped[key].courses.push(course);
         });
-        
-        content.innerHTML = html;
-    }
-
-    initializeSearch() {
-        const searchInput = document.getElementById('courseSearch');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value;
-                const filteredCourses = Course.searchCourses(this.allCourses, query);
-                this.renderCourses(filteredCourses);
-            });
-        }
-        
-        // Make loadCourses globally available
-        window.loadCourses = () => this.loadCourses();
+        return Object.values(grouped).sort((a, b) => b.sessem.localeCompare(a.sessem));
     }
 }

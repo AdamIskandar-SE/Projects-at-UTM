@@ -1,109 +1,190 @@
-// Timetable Model
+// Timetable.js - Timetable Model
 class Timetable {
-    static days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-    static timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
-
-    static async fetchTimetable() {
-        const user = User.getCurrentUser();
-        const semester = User.getCurrentSemester();
-        
-        if (!user || !semester) {
-            throw new Error('User or semester data not available');
-        }
-
-        try {
-            let timetable;
-            if (user.description === 'Pelajar FSKSM') {
-                timetable = await Api.getStudentTimetable(user.login_name, semester.sesi, semester.semester);
-            } else if (user.description === 'Pensyarah') {
-                timetable = await Api.getLecturerTimetable(user.no_pekerja, semester.sesi, semester.semester);
-            } else {
-                throw new Error('Unknown user type');
-            }
-
-            return timetable || [];
-        } catch (error) {
-            console.error('Error fetching timetable:', error);
-            // Return mock data for demonstration
-            return this.generateMockTimetable();
-        }
+    constructor(data = {}) {
+        this.id = data.id || null;
+        this.kod_subjek = data.kod_subjek || '';
+        this.nama_subjek = data.nama_subjek || '';
+        this.hari = data.hari || '';
+        this.masa_mula = data.masa_mula || '';
+        this.masa_tamat = data.masa_tamat || '';
+        this.no_bilik = data.no_bilik || '';
+        this.jenis = data.jenis || '';
+        this.pensyarah = data.pensyarah || '';
+        this.sesi = data.sesi || '';
+        this.semester = data.semester || '';
+        this.user_id = data.user_id || null;
+        this.created_at = data.created_at || new Date();
+        this.updated_at = data.updated_at || new Date();
     }
 
-    static generateMockTimetable() {
-        return [
-            {
-                kod_subjek: 'SECJ3303',
-                nama_subjek: 'Web Programming',
-                hari: 'Monday',
-                masa_mula: '09:00',
-                masa_tamat: '11:00',
-                no_bilik: 'P19-3001',
-                jenis: 'lecture'
-            },
-            {
-                kod_subjek: 'SECJ3303',
-                nama_subjek: 'Web Programming',
-                hari: 'Wednesday',
-                masa_mula: '14:00',
-                masa_tamat: '16:00',
-                no_bilik: 'P19-3001',
-                jenis: 'tutorial'
-            },
-            {
-                kod_subjek: 'SECR3104',
-                nama_subjek: 'Database Systems',
-                hari: 'Tuesday',
-                masa_mula: '10:00',
-                masa_tamat: '12:00',
-                no_bilik: 'P19-4001',
-                jenis: 'lecture'
-            },
-            {
-                kod_subjek: 'SECR3104',
-                nama_subjek: 'Database Systems',
-                hari: 'Thursday',
-                masa_mula: '15:00',
-                masa_tamat: '17:00',
-                no_bilik: 'P19-Lab2',
-                jenis: 'lab'
+    // Validation methods
+    validate() {
+        const errors = [];
+
+        if (!this.kod_subjek || this.kod_subjek.trim().length === 0) {
+            errors.push('Course code is required');
+        }
+
+        if (!this.nama_subjek || this.nama_subjek.trim().length === 0) {
+            errors.push('Course name is required');
+        }
+
+        if (!this.hari || !this.isValidDay(this.hari)) {
+            errors.push('Valid day is required');
+        }
+
+        if (!this.masa_mula || !this.isValidTime(this.masa_mula)) {
+            errors.push('Valid start time is required');
+        }
+
+        if (!this.masa_tamat || !this.isValidTime(this.masa_tamat)) {
+            errors.push('Valid end time is required');
+        }
+
+        if (!this.no_bilik || this.no_bilik.trim().length === 0) {
+            errors.push('Room number is required');
+        }
+
+        if (!this.jenis || this.jenis.trim().length === 0) {
+            errors.push('Class type is required');
+        }
+
+        // Check if end time is after start time
+        if (this.masa_mula && this.masa_tamat) {
+            if (this.timeToMinutes(this.masa_tamat) <= this.timeToMinutes(this.masa_mula)) {
+                errors.push('End time must be after start time');
             }
-        ];
+        }
+
+        return {
+            isValid: errors.length === 0,
+            errors: errors
+        };
     }
 
-    static getClassesForTimeAndDay(timetableData, time, day) {
-        const hour = parseInt(time.split(':')[0]);
+    // Utility methods
+    isValidDay(day) {
+        const validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        return validDays.includes(day);
+    }
+
+    isValidTime(timeStr) {
+        const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        return timeRegex.test(timeStr);
+    }
+
+    timeToMinutes(timeStr) {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
+    minutesToTime(minutes) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    }
+
+    getDuration() {
+        if (!this.masa_mula || !this.masa_tamat) return 0;
+        return this.timeToMinutes(this.masa_tamat) - this.timeToMinutes(this.masa_mula);
+    }
+
+    getDurationInHours() {
+        return this.getDuration() / 60;
+    }
+
+    getFormattedDuration() {
+        const duration = this.getDuration();
+        const hours = Math.floor(duration / 60);
+        const minutes = duration % 60;
         
-        return timetableData.filter(slot => {
-            const startHour = parseInt(slot.masa_mula.split(':')[0]);
-            const endHour = parseInt(slot.masa_tamat.split(':')[0]);
-            
-            return slot.hari === day && hour >= startHour && hour < endHour;
+        if (hours === 0) return `${minutes}m`;
+        if (minutes === 0) return `${hours}h`;
+        return `${hours}h ${minutes}m`;
+    }
+
+    getTimeRange() {
+        return `${this.masa_mula} - ${this.masa_tamat}`;
+    }
+
+    getClassType() {
+        const type = this.jenis.toLowerCase();
+        if (type.includes('lecture') || type.includes('kuliah')) return 'lecture';
+        if (type.includes('tutorial') || type.includes('tut')) return 'tutorial';
+        if (type.includes('lab') || type.includes('praktikum')) return 'lab';
+        return 'other';
+    }
+
+    getDisplayName() {
+        return `${this.kod_subjek} - ${this.nama_subjek}`;
+    }
+
+    getFullDetails() {
+        return {
+            course: this.getDisplayName(),
+            time: this.getTimeRange(),
+            duration: this.getFormattedDuration(),
+            room: this.no_bilik,
+            type: this.jenis,
+            day: this.hari,
+            lecturer: this.pensyarah
+        };
+    }
+
+    // Check for time conflicts
+    conflictsWith(otherTimetable) {
+        if (this.hari !== otherTimetable.hari) return false;
+        
+        const thisStart = this.timeToMinutes(this.masa_mula);
+        const thisEnd = this.timeToMinutes(this.masa_tamat);
+        const otherStart = this.timeToMinutes(otherTimetable.masa_mula);
+        const otherEnd = this.timeToMinutes(otherTimetable.masa_tamat);
+        
+        return !(thisEnd <= otherStart || thisStart >= otherEnd);
+    }
+
+    // Static methods
+    static fromJson(json) {
+        return new Timetable(json);
+    }
+
+    static fromArray(jsonArray) {
+        return jsonArray.map(item => new Timetable(item));
+    }
+
+    // Convert to JSON
+    toJson() {
+        return {
+            id: this.id,
+            kod_subjek: this.kod_subjek,
+            nama_subjek: this.nama_subjek,
+            hari: this.hari,
+            masa_mula: this.masa_mula,
+            masa_tamat: this.masa_tamat,
+            no_bilik: this.no_bilik,
+            jenis: this.jenis,
+            pensyarah: this.pensyarah,
+            sesi: this.sesi,
+            semester: this.semester,
+            user_id: this.user_id,
+            created_at: this.created_at,
+            updated_at: this.updated_at
+        };
+    }
+
+    // Update method
+    update(data) {
+        Object.keys(data).forEach(key => {
+            if (this.hasOwnProperty(key)) {
+                this[key] = data[key];
+            }
         });
+        this.updated_at = new Date();
+        return this;
     }
 
-    static getClassType(slot) {
-        switch(slot.jenis?.toLowerCase()) {
-            case 'lab': return 'lab';
-            case 'tutorial': return 'tutorial';
-            default: return 'lecture';
-        }
-    }
-
-    static filterTimeSlots(timeRange) {
-        switch(timeRange) {
-            case 'morning':
-                return this.timeSlots.slice(0, 5); // 8:00 - 12:00
-            case 'afternoon':
-                return this.timeSlots.slice(5); // 13:00 - 17:00
-            default:
-                return this.timeSlots;
-        }
-    }
-
-    static filterDays(selectedDay) {
-        if (selectedDay === 'all') {
-            return this.days;
-        }
-        return [selectedDay];
+    // Clone method
+    clone() {
+        return new Timetable(this.toJson());
     }
 }

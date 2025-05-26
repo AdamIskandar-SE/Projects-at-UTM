@@ -10,6 +10,11 @@
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body id="app">
+    <!-- Demo Hint -->
+    <div class="demo-hint" v-if="!isAuthenticated">
+        <strong>Demo Login:</strong> Username: <code>student1</code> or <code>lecturer1</code> | Password: <code>pass123</code>
+    </div>
+
     <!-- Sidebar -->
     <nav class="w3-sidebar w3-bar-block w3-card" id="sidebar" v-show="isAuthenticated">
         <div class="w3-container w3-theme-d2">
@@ -43,27 +48,34 @@
         <span class="w3-bar-item w3-right">{{ currentTime }}</span>
     </header>
 
-    <!-- Main Content -->
+    <!-- Main Content Views -->
     <div class="w3-container main-content" v-if="isAuthenticated">
-        <div v-html="currentViewContent"></div>
+        <!-- Profile View -->
+        <div id="profile-view"></div>
+        
+        <!-- Timetable View -->
+        <div id="timetable-view"></div>
+        
+        <!-- Course View -->
+        <div id="course-view"></div>
     </div>
 
     <!-- Login View -->
-    <div v-if="!isAuthenticated" v-html="loginContent"></div>
+    <div id="login-view"></div>
 
     <footer class="w3-container w3-theme w3-padding" v-show="isAuthenticated">
         <p class="w3-center">&copy; 2025, Faculty of Computing, UTM</p>
     </footer>
 
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="models/Api.js"></script>
-    <script src="models/User.js"></script>
-    <script src="models/Course.js"></script>
-    <script src="models/Timetable.js"></script>
-    <script src="controllers/AuthController.js"></script>
-    <script src="controllers/ProfileController.js"></script>
-    <script src="controllers/TimetableController.js"></script>
-    <script src="controllers/CourseController.js"></script>
-    <script src="assets/js/app.js"></script>
+    <script src="model/Api.js"></script>
+    <script src="model/User.js"></script>
+    <script src="model/Course.js"></script>
+    <script src="model/Timetable.js"></script>
+    <script src="controller/AuthController.js"></script>
+    <script src="controller/ProfileController.js"></script>
+    <script src="controller/CourseController.js"></script>
+    <script src="controller/TimetableController.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

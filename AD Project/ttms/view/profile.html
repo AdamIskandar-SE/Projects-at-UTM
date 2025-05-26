@@ -1,24 +1,81 @@
-<div class="w3-container">
-    <h2>Profile</h2>
-    
-    <div class="w3-card w3-margin">
-        <div class="w3-container w3-theme w3-padding">
-            <h3>User Information</h3>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FC Timetable System - Profile</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3pro.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-teal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="w3-sidebar w3-bar-block w3-card" id="sidebar">
+        <div class="w3-container w3-theme-d2">
+            <span class="w3-button w3-display-topright w3-large" onclick="closeSidebar()">×</span>
+            <div class="user-info">
+                <div class="w3-container w3-center">
+                    <div class="w3-circle w3-theme-l3 user-avatar" id="user-avatar"></div>
+                    <h4 id="user-name">User Name</h4>
+                    <p class="w3-small" id="user-description">User Role</p>
+                </div>
+            </div>
         </div>
-        <div class="w3-container w3-padding" id="profileInfo">
-            <p><strong>Loading...</strong></p>
+        <a class="w3-bar-item w3-button w3-theme-l4" href="profile.html">
+            <i class="fas fa-user"></i> Profile
+        </a>
+        <a class="w3-bar-item w3-button" href="timetable.html">
+            <i class="fas fa-calendar-alt"></i> Timetable
+        </a>
+        <a class="w3-bar-item w3-button" href="course.html">
+            <i class="fas fa-book"></i> Courses
+        </a>
+        <a class="w3-bar-item w3-button w3-text-red" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </nav>
+
+    <!-- Header -->
+    <header class="w3-bar w3-card w3-theme">
+        <button class="w3-bar-item w3-button w3-xxlarge" onclick="openSidebar()">☰</button>
+        <span class="w3-bar-item app-title">FC Timetable</span>
+        <span class="w3-bar-item w3-right" id="current-time"></span>
+    </header>
+
+    <!-- Main Content -->
+    <div class="w3-container main-content">
+        <h2>Profile</h2>
+        <div class="w3-card w3-margin">
+            <div class="w3-container w3-theme w3-padding">
+                <h3>User Information</h3>
+            </div>
+            <div class="w3-container w3-padding">
+                <p><strong>Name:</strong> <span id="profile-name">N/A</span></p>
+                <p><strong>Login ID:</strong> <span id="profile-login">N/A</span></p>
+                <p><strong>Type:</strong> <span id="profile-type">N/A</span></p>
+                <p id="staff-id-section" style="display: none;"><strong>Staff ID:</strong> <span id="profile-staff-id"></span></p>
+                <p id="student-id-section" style="display: none;"><strong>Student ID:</strong> <span id="profile-student-id"></span></p>
+            </div>
+        </div>
+        <div class="w3-card w3-margin">
+            <div class="w3-container w3-theme w3-padding">
+                <h3>Semester Selection</h3>
+            </div>
+            <div class="w3-container w3-padding">
+                <label>Current Semester:</label>
+                <select class="w3-select w3-border" id="semester-select">
+                    <!-- Semester options will be populated here -->
+                </select>
+            </div>
         </div>
     </div>
-    
-    <div class="w3-card w3-margin">
-        <div class="w3-container w3-theme w3-padding">
-            <h3>Semester Selection</h3>
-        </div>
-        <div class="w3-container w3-padding">
-            <label>Current Semester:</label>
-            <select class="w3-select w3-border" id="semesterSelect">
-                <option>Loading semesters...</option>
-            </select>
-        </div>
-    </div>
-</div>
+
+    <footer class="w3-container w3-theme w3-padding">
+        <p class="w3-center">&copy; 2025, Faculty of Computing, UTM</p>
+    </footer>
+
+    <script src="../assets/js/app.js"></script>
+    <script src="../controller/ProfileController.js"></script>
+</body>
+</html>
