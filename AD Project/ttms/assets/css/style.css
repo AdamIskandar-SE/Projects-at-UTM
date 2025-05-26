@@ -1,3 +1,5 @@
+/* FC Timetable System Styles */
+
 /* Sidebar */
 #sidebar { 
     width: 250px; 
@@ -207,6 +209,12 @@
 .login-btn:hover { 
     transform: translateY(-2px); 
     box-shadow: 0 10px 25px rgba(0,150,136,0.3); 
+}
+
+.login-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .login-footer { 
@@ -456,6 +464,15 @@
         font-size: 12px; 
         padding: 8px; 
     }
+
+    .login-container {
+        width: 95%;
+        margin: 0 auto;
+    }
+
+    .login-form {
+        padding: 30px 20px;
+    }
 }
 
 /* Animations */
@@ -503,4 +520,49 @@
     100% { 
         transform: rotate(360deg); 
     } 
+}
+
+/* Additional utility classes */
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.mt-10 {
+    margin-top: 10px;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
+
+.mb-10 {
+    margin-bottom: 10px;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+.p-10 {
+    padding: 10px;
+}
+
+.p-20 {
+    padding: 20px;
 }
