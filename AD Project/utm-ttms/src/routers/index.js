@@ -2,13 +2,13 @@ import { useAuthStore } from '@/store/modules/auth'
 import { createRouter, createWebHistory } from 'vue-router'
 
 // Views
-import About from '@/views/About.vue'
-import Courses from '@/views/Courses.vue'
-import Home from '@/views/Home.vue'
-import Login from '@/views/Login.vue'
-import Profile from '@/views/Profile.vue'
-import StudentCourses from '@/views/StudentCourses.vue'
-import Timetable from '@/views/Timetable.vue'
+import About from '@/view/About.vue'
+import Courses from '@/view/Courses.vue'
+import Home from '@/view/Home.vue'
+import Login from '@/view/Login.vue'
+import Profile from '@/view/Profile.vue'
+import StudentCourses from '@/view/StudentCourses.vue'
+import Timetable from '@/view/Timetable.vue'
 
 const routes = [
   {
