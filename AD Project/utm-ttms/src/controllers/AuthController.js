@@ -1,5 +1,5 @@
-import { UserModel } from '@/models/User'
-import { AuthService } from '@/services/AuthService'
+import UserModel from '@/models/User'
+import AuthService from '@/services/AuthService'
 
 export class AuthController {
   /**
